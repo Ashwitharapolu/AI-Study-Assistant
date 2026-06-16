@@ -1,6 +1,6 @@
 import streamlit as st
 
-# Page config - always first line
+# Page config
 st.set_page_config(
     page_title="AI Study Assistant",
     page_icon="📚",
@@ -25,33 +25,49 @@ with st.sidebar:
         max_value=10,
         value=5
     )
-    st.write(f"Will retrieve top {num_chunks} chunks")
+    
+    st.divider()
+    
+    # Clear chat button
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
 
-# Main area - 3 columns
-col1, col2, col3 = st.columns(3)
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-with col1:
-    st.metric("📄 Pages Processed", "0")
+# Display welcome message if no messages
+if len(st.session_state.messages) == 0:
+    st.info("👋 Welcome! Upload a PDF in the sidebar and start asking questions!")
 
-with col2:
-    st.metric("🔍 Chunks Created", "0")
+# Display all previous messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
-with col3:
-    st.metric("❓ Questions Asked", "0")
-
-st.divider()
-
-# Simple input test
-st.subheader("💬 Ask a Question")
-question = st.text_input("Type your question here...")
-
-if st.button("Ask"):
-    if question:
-        st.info(f"You asked: {question}")
-        st.warning("RAG pipeline will be connected on Day 14!")
-    else:
-        st.error("Please type a question first!")
-
-# Footer
-st.divider()
-st.caption("AI Powered Smart Study Assistant using RAG and LLMs")
+# Chat input at bottom
+if prompt := st.chat_input("Ask a question about your study material..."):
+    
+    # Add user message to history
+    st.session_state.messages.append({
+        "role": "user",
+        "content": prompt
+    })
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    # Display AI response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            # Placeholder response for now
+            response = f"You asked: '{prompt}'. RAG pipeline will be connected on Day 14!"
+            st.write(response)
+    
+    # Add AI response to history
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": response
+    })
