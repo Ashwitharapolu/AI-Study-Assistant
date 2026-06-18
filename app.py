@@ -2,7 +2,7 @@ import streamlit as st
 import sys
 import os
 
-# Add src to path so we can import our modules
+# Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from rag import RAGPipeline
@@ -14,7 +14,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize RAG pipeline in session state
+# Initialize session state
 if "rag" not in st.session_state:
     st.session_state.rag = RAGPipeline()
 
@@ -27,50 +27,60 @@ if "pdf_processed" not in st.session_state:
 if "num_chunks" not in st.session_state:
     st.session_state.num_chunks = 0
 
+if "questions_asked" not in st.session_state:
+    st.session_state.questions_asked = 0
+
 # Title
 st.title("📚 AI Powered Smart Study Assistant")
 st.subheader("Upload your study material and ask anything!")
 
+# Metrics row
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.metric("📄 PDF Status",
+              "Ready ✅" if st.session_state.pdf_processed else "Not uploaded ❌")
+with col2:
+    st.metric("🔍 Chunks Created", st.session_state.num_chunks)
+with col3:
+    st.metric("❓ Questions Asked", st.session_state.questions_asked)
+
+st.divider()
+
 # Sidebar
 with st.sidebar:
     st.header("📁 Upload Material")
-    
-    # PDF uploader
+
     uploaded_file = st.file_uploader(
         "Upload your PDF",
         type="pdf",
         help="Upload any PDF study material"
     )
-    
-    # Process uploaded PDF
+
     if uploaded_file is not None:
         if st.button("📥 Process PDF"):
-            with st.spinner("Processing PDF..."):
-                # Save uploaded file temporarily
+            with st.spinner("Processing PDF... This takes 2-3 minutes"):
                 temp_path = f"data/{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
-                
-                # Process with RAG pipeline
+
                 success = st.session_state.rag.process_pdf(temp_path)
-                
+
                 if success:
                     st.session_state.pdf_processed = True
                     st.session_state.num_chunks = len(st.session_state.rag.chunks)
                     st.success("✅ PDF processed successfully!")
                     st.session_state.messages = []
                 else:
-                    st.error("❌ Failed to process PDF. Please try another file.")
-    
-    # Show PDF status
+                    st.error("❌ Failed to process PDF.")
+
     if st.session_state.pdf_processed:
         st.success("📄 PDF Ready!")
         st.info(f"📊 {st.session_state.num_chunks} chunks created")
     else:
         st.warning("⚠️ No PDF uploaded yet")
-    
+
     st.divider()
-    
+
     st.header("⚙️ Settings")
     num_chunks = st.slider(
         "Chunks to retrieve",
@@ -78,14 +88,14 @@ with st.sidebar:
         max_value=10,
         value=5
     )
-    
+
     st.divider()
-    
+
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
         st.rerun()
 
-# Main chat area
+# Chat area
 if len(st.session_state.messages) == 0:
     if st.session_state.pdf_processed:
         st.info("✅ PDF uploaded! Ask me anything about your study material!")
@@ -111,14 +121,17 @@ if prompt := st.chat_input("Ask a question about your study material..."):
         with st.chat_message("user"):
             st.write(prompt)
 
-        # Get AI response
+        # Get REAL answer from RAG pipeline
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = f"You asked: '{prompt}'. RAG pipeline will be connected on Day 14!"
+                # THIS IS THE KEY CHANGE - real RAG answer!
+                response = st.session_state.rag.ask(prompt)
                 st.write(response)
 
-        # Save AI response
+        # Save response and update counter
         st.session_state.messages.append({
             "role": "assistant",
             "content": response
         })
+        st.session_state.questions_asked += 1
+        st.rerun()
