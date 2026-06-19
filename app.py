@@ -93,8 +93,8 @@ with st.sidebar:
 
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
+        st.session_state.rag.clear_history()
         st.rerun()
-
 # Chat area
 if len(st.session_state.messages) == 0:
     if st.session_state.pdf_processed:

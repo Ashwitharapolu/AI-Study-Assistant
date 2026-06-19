@@ -10,39 +10,34 @@ class RAGPipeline:
         self.index = None
         self.chunks = None
         self.is_ready = False
+        # Conversation memory - stores last 5 exchanges
+        self.chat_history = []
 
     def process_pdf(self, pdf_path):
-        """
-        Complete pipeline to process a PDF file
-        Extract → Chunk → Embed → Store
-        """
+        """Complete pipeline to process a PDF file"""
         print(f"Processing {pdf_path}...")
 
-        # Step 1 - Extract text
         print("Step 1 - Extracting text...")
         text = extract_text(pdf_path)
         if not text.strip():
             print("Error: Could not extract text from PDF")
             return False
 
-        # Step 2 - Chunk text
         print("Step 2 - Chunking text...")
         self.chunks = chunk_text(text)
         print(f"Total chunks: {len(self.chunks)}")
 
-        # Step 3 - Create embeddings
         print("Step 3 - Creating embeddings...")
         embeddings = get_embeddings(self.chunks)
 
-        # Step 4 - Build FAISS index
         print("Step 4 - Building FAISS index...")
         self.index = build_index(embeddings)
 
-        # Step 5 - Save index
         print("Step 5 - Saving index...")
         save_index(self.index, self.chunks)
 
         self.is_ready = True
+        self.chat_history = []
         print("PDF processed successfully!")
         return True
 
@@ -58,22 +53,40 @@ class RAGPipeline:
             return False
 
     def ask(self, question):
-        """Ask a question and get answer"""
+        """Ask a question with conversation memory"""
         if not self.is_ready:
             return "Please upload a PDF first!"
 
         # Get relevant chunks
         results = search(question, self.index, self.chunks, model, k=5)
 
-        # Get answer from Groq
-        answer = get_answer(question, results)
+        # Build context with chat history
+        history_text = ""
+        if self.chat_history:
+            history_text = "\n\nPrevious conversation:\n"
+            for exchange in self.chat_history[-5:]:
+                history_text += f"Human: {exchange['question']}\n"
+                history_text += f"Assistant: {exchange['answer']}\n"
+
+        # Get answer from Groq with history
+        answer = get_answer(question, results, history_text)
+
+        # Save to chat history
+        self.chat_history.append({
+            "question": question,
+            "answer": answer
+        })
+
+        # Keep only last 5 exchanges
+        if len(self.chat_history) > 5:
+            self.chat_history = self.chat_history[-5:]
+
         return answer
 
     def summarize(self):
         """Summarize the uploaded document"""
         if not self.is_ready:
             return "Please upload a PDF first!"
-
         summary = get_summary(self.chunks)
         return summary
 
@@ -81,54 +94,9 @@ class RAGPipeline:
         """Generate quiz from uploaded document"""
         if not self.is_ready:
             return None
-
         quiz = get_quiz(self.chunks)
         return quiz
 
-
-# Test it
-if __name__ == "__main__":
-    # Create RAG pipeline
-    rag = RAGPipeline()
-
-    # Option 1 - Process new PDF
-    # rag.process_pdf("data/sample.pdf")
-
-    # Option 2 - Load existing index
-    rag.load_existing()
-
-    if rag.is_ready:
-        # Test 1 - Ask questions
-        print("\n" + "="*50)
-        print("TEST 1 - ASK QUESTIONS")
-        print("="*50)
-
-        questions = [
-            "What is Python?",
-            "How do you define a function?",
-            "What are loops?"
-        ]
-
-        for q in questions:
-            print(f"\nQ: {q}")
-            answer = rag.ask(q)
-            print(f"A: {answer}")
-
-        # Test 2 - Summary
-        print("\n" + "="*50)
-        print("TEST 2 - SUMMARY")
-        print("="*50)
-        summary = rag.summarize()
-        print(summary)
-
-        # Test 3 - Quiz
-        print("\n" + "="*50)
-        print("TEST 3 - QUIZ")
-        print("="*50)
-        quiz = rag.generate_quiz()
-        if quiz:
-            for i, q in enumerate(quiz):
-                print(f"\nQ{i+1}: {q['question']}")
-                for option in q['options']:
-                    print(f"  {option}")
-                print(f"Answer: {q['answer']}")
+    def clear_history(self):
+        """Clear conversation history"""
+        self.chat_history = []

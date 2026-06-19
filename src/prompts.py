@@ -1,11 +1,11 @@
-def build_qa_prompt(question, context_chunks):
-    """Build a detailed QA prompt with context"""
-    
+def build_qa_prompt(question, context_chunks, history_text=""):
+    """Build a detailed QA prompt with context and memory"""
+
     # Add chunk numbers to context
     context = ""
     for i, chunk in enumerate(context_chunks):
         context += f"\n[Source {i+1}]:\n{chunk}\n"
-    
+
     prompt = f"""You are an intelligent study assistant helping a student understand their study material.
 
 Your rules:
@@ -14,6 +14,8 @@ Your rules:
 3. Give clear structured answers
 4. Mention which source number you used at the end
 5. Use simple language a student can understand
+6. Use previous conversation for context if relevant
+{history_text}
 
 Context:
 {context}
@@ -21,7 +23,7 @@ Context:
 Question: {question}
 
 Answer (with source):"""
-    
+
     return prompt
 
 
