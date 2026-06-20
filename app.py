@@ -1,13 +1,11 @@
+# Day 16 - Summarization Feature
 import streamlit as st
 import sys
 import os
 
-# Add src to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-
 from rag import RAGPipeline
 
-# Page config
 st.set_page_config(
     page_title="AI Study Assistant",
     page_icon="📚",
@@ -17,16 +15,12 @@ st.set_page_config(
 # Initialize session state
 if "rag" not in st.session_state:
     st.session_state.rag = RAGPipeline()
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
 if "pdf_processed" not in st.session_state:
     st.session_state.pdf_processed = False
-
 if "num_chunks" not in st.session_state:
     st.session_state.num_chunks = 0
-
 if "questions_asked" not in st.session_state:
     st.session_state.questions_asked = 0
 
@@ -62,9 +56,7 @@ with st.sidebar:
                 temp_path = f"data/{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
-
                 success = st.session_state.rag.process_pdf(temp_path)
-
                 if success:
                     st.session_state.pdf_processed = True
                     st.session_state.num_chunks = len(st.session_state.rag.chunks)
@@ -91,10 +83,27 @@ with st.sidebar:
 
     st.divider()
 
+    st.header("🛠️ Tools")
+
+    if st.button("📝 Summarize PDF"):
+        if not st.session_state.pdf_processed:
+            st.warning("⚠️ Please upload a PDF first!")
+        else:
+            with st.spinner("Generating summary..."):
+                summary = st.session_state.rag.summarize()
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": f"📝 **Document Summary:**\n\n{summary}"
+                })
+            st.rerun()
+
+    st.divider()
+
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
         st.session_state.rag.clear_history()
         st.rerun()
+
 # Chat area
 if len(st.session_state.messages) == 0:
     if st.session_state.pdf_processed:
@@ -112,23 +121,16 @@ if prompt := st.chat_input("Ask a question about your study material..."):
     if not st.session_state.pdf_processed:
         st.warning("⚠️ Please upload a PDF first!")
     else:
-        # Add user message
         st.session_state.messages.append({
             "role": "user",
             "content": prompt
         })
-
         with st.chat_message("user"):
             st.write(prompt)
-
-        # Get REAL answer from RAG pipeline
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                # THIS IS THE KEY CHANGE - real RAG answer!
                 response = st.session_state.rag.ask(prompt)
                 st.write(response)
-
-        # Save response and update counter
         st.session_state.messages.append({
             "role": "assistant",
             "content": response
