@@ -97,6 +97,31 @@ with st.sidebar:
                 })
             st.rerun()
 
+    # Quiz Generator button
+    if st.button("🎯 Generate Quiz"):
+        if not st.session_state.pdf_processed:
+            st.warning("⚠️ Please upload a PDF first!")
+        else:
+            with st.spinner("Generating quiz..."):
+                quiz = st.session_state.rag.generate_quiz()
+                if quiz:
+                    # Format quiz as readable text
+                    quiz_text = "🎯 **Quiz Time!**\n\n"
+                    for i, q in enumerate(quiz):
+                        quiz_text += f"**Q{i+1}: {q['question']}**\n\n"
+                        for option in q['options']:
+                            quiz_text += f"{option}\n"
+                        quiz_text += f"\n✅ **Answer: {q['answer']}**\n\n"
+                        quiz_text += "---\n\n"
+
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": quiz_text
+                    })
+                else:
+                    st.error("❌ Failed to generate quiz. Please try again.")
+            st.rerun()
+
     st.divider()
 
     if st.button("🗑️ Clear Chat"):
