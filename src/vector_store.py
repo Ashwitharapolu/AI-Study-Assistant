@@ -1,91 +1,88 @@
+# Day 6 - FAISS Vector Store + Day 18 MMR Search
 import faiss
 import numpy as np
 import pickle
+import os
 from embeddings import get_embeddings
-from chunker import chunk_text
-from pdf_loader import extract_text
 
 def build_index(embeddings):
     """Store embeddings in FAISS index"""
-    # Convert to float32 - FAISS requires this format
     embeddings = np.array(embeddings).astype('float32')
-    
-    # Get dimension - how many numbers per vector (384)
     dimension = embeddings.shape[1]
-    
-    # Create FAISS index
     index = faiss.IndexFlatL2(dimension)
-    
-    # Add all vectors to index
     index.add(embeddings)
-    
     return index
 
 def save_index(index, chunks, path="faiss_index"):
     """Save FAISS index and chunks to disk"""
-    import os
     os.makedirs(path, exist_ok=True)
-    
-    # Save FAISS index
     faiss.write_index(index, f"{path}/index.faiss")
-    
-    # Save chunks separately
     with open(f"{path}/chunks.pkl", "wb") as f:
         pickle.dump(chunks, f)
-    
     print(f"Index saved to {path}/")
 
 def load_index(path="faiss_index"):
     """Load FAISS index and chunks from disk"""
     index = faiss.read_index(f"{path}/index.faiss")
-    
     with open(f"{path}/chunks.pkl", "rb") as f:
         chunks = pickle.load(f)
-    
     return index, chunks
 
 def search(query, index, chunks, model, k=5):
     """Search for top k most relevant chunks"""
-    # Convert question to vector
     query_vector = model.encode([query]).astype('float32')
-    
-    # Search FAISS
     distances, indices = index.search(query_vector, k)
-    
-    # Return relevant chunks
     results = [chunks[i] for i in indices[0]]
     return results
 
-# Test it
-if __name__ == "__main__":
-    from embeddings import model
-    
-    # Step 1 - Extract text
-    print("Step 1 - Extracting text...")
-    text = extract_text("data/sample.pdf")
-    
-    # Step 2 - Chunk it
-    print("Step 2 - Chunking...")
-    chunks = chunk_text(text)
-    
-    # Step 3 - Create embeddings
-    print("Step 3 - Creating embeddings...")
-    embeddings = get_embeddings(chunks)
-    
-    # Step 4 - Build FAISS index
-    print("Step 4 - Building FAISS index...")
-    index = build_index(embeddings)
-    print(f"Total vectors stored: {index.ntotal}")
-    
-    # Step 5 - Save index
-    print("Step 5 - Saving index...")
-    save_index(index, chunks)
-    
-    # Step 6 - Test search
-    print("\nStep 6 - Testing search...")
-    question = "What is Python programming?"
-    results = search(question, index, chunks, model)
-    
-    print(f"\nQuestion: {question}")
-    print(f"\nTop relevant chunk found:")
-    print(results[0])
+def search_mmr(query, index, chunks, model, k=5, fetch_k=20):
+    """MMR Search - finds relevant AND diverse chunks"""
+    # Convert query to vector
+    query_vector = model.encode([query]).astype('float32')
+
+    # Fetch more candidates first
+    distances, indices = index.search(query_vector, min(fetch_k, index.ntotal))
+
+    # Get candidate chunks and their vectors
+    candidate_indices = indices[0].tolist()
+    candidate_chunks = [chunks[i] for i in candidate_indices]
+
+    # Get embeddings for candidates
+    candidate_embeddings = model.encode(candidate_chunks).astype('float32')
+    query_vec = query_vector[0]
+
+    # MMR selection
+    selected = []
+    remaining = list(range(len(candidate_indices)))
+
+    while len(selected) < k and remaining:
+        if not selected:
+            # First selection - most relevant to query
+            scores = [
+                np.dot(query_vec, candidate_embeddings[i]) /
+                (np.linalg.norm(query_vec) * np.linalg.norm(candidate_embeddings[i]) + 1e-8)
+                for i in remaining
+            ]
+            best = remaining[np.argmax(scores)]
+        else:
+            # Subsequent selections - balance relevance and diversity
+            mmr_scores = []
+            for i in remaining:
+                relevance = np.dot(query_vec, candidate_embeddings[i]) / \
+                    (np.linalg.norm(query_vec) * np.linalg.norm(candidate_embeddings[i]) + 1e-8)
+
+                redundancy = max([
+                    np.dot(candidate_embeddings[i], candidate_embeddings[s]) /
+                    (np.linalg.norm(candidate_embeddings[i]) * np.linalg.norm(candidate_embeddings[s]) + 1e-8)
+                    for s in selected
+                ])
+
+                mmr_score = 0.7 * relevance - 0.3 * redundancy
+                mmr_scores.append(mmr_score)
+
+            best = remaining[np.argmax(mmr_scores)]
+
+        selected.append(best)
+        remaining.remove(best)
+
+    return [chunks[candidate_indices[i]] for i in selected]

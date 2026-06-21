@@ -1,7 +1,7 @@
 from pdf_loader import extract_text
 from chunker import chunk_text
 from embeddings import get_embeddings, model
-from vector_store import build_index, save_index, load_index, search
+from vector_store import build_index, save_index, load_index, search, search_mmr
 from llm import get_answer, get_summary, get_quiz
 import os
 
@@ -57,8 +57,8 @@ class RAGPipeline:
         if not self.is_ready:
             return "Please upload a PDF first!"
 
-        # Get relevant chunks
-        results = search(question, self.index, self.chunks, model, k=5)
+        # Get relevant chunks using MMR
+        results = search_mmr(question, self.index, self.chunks, model, k=5, fetch_k=20)
 
         # Build context with chat history
         history_text = ""
