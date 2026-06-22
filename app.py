@@ -1,4 +1,3 @@
-# Day 16 - Summarization Feature
 import streamlit as st
 import sys
 import os
@@ -44,32 +43,43 @@ st.divider()
 with st.sidebar:
     st.header("📁 Upload Material")
 
-    uploaded_file = st.file_uploader(
-        "Upload your PDF",
+    # Multiple file uploader
+    uploaded_files = st.file_uploader(
+        "Upload your PDFs",
         type="pdf",
-        help="Upload any PDF study material"
+        accept_multiple_files=True,
+        help="Upload one or more PDF study materials"
     )
 
-    if uploaded_file is not None:
-        if st.button("📥 Process PDF"):
-            with st.spinner("Processing PDF... This takes 2-3 minutes"):
-                temp_path = f"data/{uploaded_file.name}"
-                with open(temp_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                success = st.session_state.rag.process_pdf(temp_path)
-                if success:
-                    st.session_state.pdf_processed = True
-                    st.session_state.num_chunks = len(st.session_state.rag.chunks)
-                    st.success("✅ PDF processed successfully!")
-                    st.session_state.messages = []
-                else:
-                    st.error("❌ Failed to process PDF.")
+    if uploaded_files:
+        if st.button("📥 Process PDFs"):
+            for uploaded_file in uploaded_files:
+                with st.spinner(f"Processing {uploaded_file.name}..."):
+                    temp_path = f"data/{uploaded_file.name}"
+                    with open(temp_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
 
+                    success = st.session_state.rag.process_pdf(temp_path)
+
+                    if success:
+                        st.session_state.pdf_processed = True
+                        st.session_state.num_chunks = len(st.session_state.rag.chunks)
+                        st.success(f"✅ {uploaded_file.name} processed!")
+                    else:
+                        st.error(f"❌ Failed to process {uploaded_file.name}")
+
+    # Show uploaded PDFs
     if st.session_state.pdf_processed:
-        st.success("📄 PDF Ready!")
-        st.info(f"📊 {st.session_state.num_chunks} chunks created")
+        st.success("📄 PDFs Ready!")
+        st.info(f"📊 {st.session_state.num_chunks} total chunks")
+
+        # Show list of uploaded PDFs
+        if st.session_state.rag.uploaded_pdfs:
+            st.write("**Uploaded PDFs:**")
+            for pdf in st.session_state.rag.uploaded_pdfs:
+                st.write(f"📄 {pdf}")
     else:
-        st.warning("⚠️ No PDF uploaded yet")
+        st.warning("⚠️ No PDFs uploaded yet")
 
     st.divider()
 
@@ -97,7 +107,6 @@ with st.sidebar:
                 })
             st.rerun()
 
-    # Quiz Generator button
     if st.button("🎯 Generate Quiz"):
         if not st.session_state.pdf_processed:
             st.warning("⚠️ Please upload a PDF first!")
@@ -105,7 +114,6 @@ with st.sidebar:
             with st.spinner("Generating quiz..."):
                 quiz = st.session_state.rag.generate_quiz()
                 if quiz:
-                    # Format quiz as readable text
                     quiz_text = "🎯 **Quiz Time!**\n\n"
                     for i, q in enumerate(quiz):
                         quiz_text += f"**Q{i+1}: {q['question']}**\n\n"
@@ -113,16 +121,24 @@ with st.sidebar:
                             quiz_text += f"{option}\n"
                         quiz_text += f"\n✅ **Answer: {q['answer']}**\n\n"
                         quiz_text += "---\n\n"
-
                     st.session_state.messages.append({
                         "role": "assistant",
                         "content": quiz_text
                     })
                 else:
-                    st.error("❌ Failed to generate quiz. Please try again.")
+                    st.error("❌ Failed to generate quiz.")
             st.rerun()
 
     st.divider()
+
+    # Reset button
+    if st.button("🔄 Reset All"):
+        st.session_state.rag.reset()
+        st.session_state.pdf_processed = False
+        st.session_state.num_chunks = 0
+        st.session_state.messages = []
+        st.session_state.questions_asked = 0
+        st.rerun()
 
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
@@ -132,9 +148,9 @@ with st.sidebar:
 # Chat area
 if len(st.session_state.messages) == 0:
     if st.session_state.pdf_processed:
-        st.info("✅ PDF uploaded! Ask me anything about your study material!")
+        st.info("✅ PDFs uploaded! Ask me anything about your study material!")
     else:
-        st.info("👋 Welcome! Upload a PDF in the sidebar to get started!")
+        st.info("👋 Welcome! Upload PDFs in the sidebar to get started!")
 
 # Display chat history
 for message in st.session_state.messages:

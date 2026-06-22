@@ -1,10 +1,12 @@
-# Day 19 - RAG Pipeline with Error Handling
 from pdf_loader import extract_text
 from chunker import chunk_text
 from embeddings import get_embeddings, model
 from vector_store import build_index, save_index, load_index, search_mmr
 from llm import get_answer, get_summary, get_quiz
 import os
+import faiss
+import numpy as np
+import pickle
 
 class RAGPipeline:
     def __init__(self):
@@ -12,9 +14,10 @@ class RAGPipeline:
         self.chunks = None
         self.is_ready = False
         self.chat_history = []
+        self.uploaded_pdfs = []  # Track uploaded PDFs
 
     def process_pdf(self, pdf_path):
-        """Complete pipeline with error handling"""
+        """Process a single PDF and add to existing index"""
         try:
             print(f"Processing {pdf_path}...")
 
@@ -36,20 +39,33 @@ class RAGPipeline:
                 return False
 
             print("Step 2 - Chunking text...")
-            self.chunks = chunk_text(text)
-            if not self.chunks:
+            new_chunks = chunk_text(text)
+            if not new_chunks:
                 print("Error: Could not create chunks")
                 return False
-            print(f"Total chunks: {len(self.chunks)}")
+            print(f"New chunks: {len(new_chunks)}")
 
             print("Step 3 - Creating embeddings...")
-            embeddings = get_embeddings(self.chunks)
+            new_embeddings = get_embeddings(new_chunks)
 
-            print("Step 4 - Building FAISS index...")
-            self.index = build_index(embeddings)
+            print("Step 4 - Building/updating FAISS index...")
+            if self.index is None:
+                # First PDF - create new index
+                self.chunks = new_chunks
+                self.index = build_index(new_embeddings)
+            else:
+                # Additional PDF - add to existing index
+                self.chunks.extend(new_chunks)
+                new_embeddings_float = np.array(new_embeddings).astype('float32')
+                self.index.add(new_embeddings_float)
 
             print("Step 5 - Saving index...")
             save_index(self.index, self.chunks)
+
+            # Track uploaded PDFs
+            pdf_name = os.path.basename(pdf_path)
+            if pdf_name not in self.uploaded_pdfs:
+                self.uploaded_pdfs.append(pdf_name)
 
             self.is_ready = True
             self.chat_history = []
@@ -75,7 +91,7 @@ class RAGPipeline:
             return False
 
     def ask(self, question):
-        """Ask question with error handling"""
+        """Ask question with conversation memory"""
         try:
             if not self.is_ready:
                 return "Please upload a PDF first!"
@@ -83,12 +99,10 @@ class RAGPipeline:
             if not question.strip():
                 return "Please ask a valid question!"
 
-            # Get relevant chunks using MMR
             results = search_mmr(
                 question, self.index, self.chunks, model, k=5, fetch_k=20
             )
 
-            # Build history text
             history_text = ""
             if self.chat_history:
                 history_text = "\n\nPrevious conversation:\n"
@@ -98,7 +112,6 @@ class RAGPipeline:
 
             answer = get_answer(question, results, history_text)
 
-            # Save to history
             self.chat_history.append({
                 "question": question,
                 "answer": answer
@@ -136,3 +149,11 @@ class RAGPipeline:
     def clear_history(self):
         """Clear conversation history"""
         self.chat_history = []
+
+    def reset(self):
+        """Reset entire pipeline"""
+        self.index = None
+        self.chunks = None
+        self.is_ready = False
+        self.chat_history = []
+        self.uploaded_pdfs = []
