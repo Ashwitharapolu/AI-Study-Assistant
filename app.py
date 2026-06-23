@@ -1,4 +1,3 @@
-# Day 21 - Professional Subtle UI
 import streamlit as st
 import sys
 import os
