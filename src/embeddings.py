@@ -1,32 +1,25 @@
-from sentence_transformers import SentenceTransformer
-from chunker import chunk_text
-from pdf_loader import extract_text
+# ============================================
+# embeddings.py - Embedding Generation Module
+# AI Powered Smart Study Assistant
+# ============================================
 
-# Load embedding model - runs locally, completely free!
+from sentence_transformers import SentenceTransformer
+
+# Load model once at module level
+# all-MiniLM-L6-v2 is free, fast and runs locally
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def get_embeddings(chunks):
-    """Convert list of text chunks into vectors"""
-    embeddings = model.encode(chunks, show_progress_bar=True)
+
+def get_embeddings(chunks, show_progress=True):
+    """
+    Convert text chunks into vectors
+    Args:
+        chunks: List of text chunks
+        show_progress: Show progress bar (default True)
+    Returns:
+        Numpy array of embeddings shape (n_chunks, 384)
+    """
+    print(f"Creating embeddings for {len(chunks)} chunks...")
+    embeddings = model.encode(chunks, show_progress_bar=show_progress)
+    print(f"Embeddings shape: {embeddings.shape}")
     return embeddings
-
-# Test it
-if __name__ == "__main__":
-    # Step 1 - Extract text
-    print("Step 1 - Extracting text from PDF...")
-    text = extract_text("data/sample.pdf")
-
-    # Step 2 - Chunk it
-    print("Step 2 - Chunking text...")
-    chunks = chunk_text(text)
-    print(f"Total chunks: {len(chunks)}")
-
-    # Step 3 - Create embeddings
-    print("Step 3 - Creating embeddings...")
-    embeddings = get_embeddings(chunks)
-
-    # Print results
-    print(f"\nEmbeddings shape: {embeddings.shape}")
-    print(f"Each chunk becomes {embeddings.shape[1]} numbers")
-    print(f"\nFirst embedding first 10 numbers:")
-    print(embeddings[0][:10])

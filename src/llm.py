@@ -1,4 +1,7 @@
-# Day 19 - LLM with Error Handling
+# ============================================
+# llm.py - LLM Connection Module
+# AI Powered Smart Study Assistant
+# ============================================
 from groq import Groq
 from dotenv import load_dotenv
 from prompts import build_qa_prompt, build_summary_prompt, build_quiz_prompt

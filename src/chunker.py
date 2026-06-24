@@ -1,28 +1,26 @@
-# Day 4 - Text Chunking
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pdf_loader import extract_text
+# ============================================
+# chunker.py - Text Chunking Module
+# AI Powered Smart Study Assistant
+# ============================================
 
-def chunk_text(text):
-    """Split text into small overlapping chunks"""
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+
+def chunk_text(text, chunk_size=500, chunk_overlap=50):
+    """
+    Split text into overlapping chunks
+    Args:
+        text: Full text to split
+        chunk_size: Max characters per chunk (default 500)
+        chunk_overlap: Overlap between chunks (default 50)
+    Returns:
+        List of text chunks
+    """
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,        # each chunk = 500 characters
-        chunk_overlap=50,      # 50 characters overlap between chunks
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
         length_function=len,
     )
     chunks = splitter.split_text(text)
+    print(f"Created {len(chunks)} chunks")
     return chunks
-
-# Test it
-if __name__ == "__main__":
-    # First extract text from PDF
-    text = extract_text("data/sample.pdf")
-    
-    # Then chunk it
-    chunks = chunk_text(text)
-    
-    # Print results
-    print(f"Total chunks created: {len(chunks)}")
-    print(f"\nFirst chunk:")
-    print(chunks[0])
-    print(f"\nSecond chunk:")
-    print(chunks[1])

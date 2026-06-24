@@ -1,3 +1,7 @@
+# ============================================
+# retriever.py - Retrieval System Module
+# AI Powered Smart Study Assistant
+# ============================================
 from embeddings import get_embeddings, model
 from vector_store import load_index, search
 

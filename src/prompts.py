@@ -1,7 +1,19 @@
-def build_qa_prompt(question, context_chunks, history_text=""):
-    """Build a detailed QA prompt with context and memory"""
+# ============================================
+# prompts.py - Prompt Engineering Module
+# AI Powered Smart Study Assistant
+# ============================================
 
-    # Add chunk numbers to context
+def build_qa_prompt(question, context_chunks, history_text=""):
+    """
+    Build a detailed QA prompt with context and memory
+    Args:
+        question: User's question
+        context_chunks: Top 5 relevant chunks from FAISS
+        history_text: Last 5 conversation exchanges
+    Returns:
+        Formatted prompt string
+    """
+    # Add source numbers to each chunk
     context = ""
     for i, chunk in enumerate(context_chunks):
         context += f"\n[Source {i+1}]:\n{chunk}\n"
@@ -28,9 +40,18 @@ Answer (with source):"""
 
 
 def build_summary_prompt(context_chunks):
-    """Build a prompt to summarize document"""
-    context = "\n\n".join(context_chunks[:10])
-    
+    """
+    Build a prompt to summarize document
+    Uses chunks 10-30 to skip copyright/intro pages
+    Args:
+        context_chunks: All chunks from document
+    Returns:
+        Formatted summary prompt
+    """
+    # Skip first 10 chunks (copyright/org info)
+    # Use chunks 10-30 for actual content
+    context = "\n\n".join(context_chunks[10:30])
+
     prompt = f"""You are a study assistant. Summarize the following study material clearly.
 
 Format your response exactly like this:
@@ -47,14 +68,23 @@ Material:
 {context}
 
 Summary:"""
-    
+
     return prompt
 
 
 def build_quiz_prompt(context_chunks):
-    """Build a prompt to generate MCQ quiz"""
-    context = "\n\n".join(context_chunks[:5])
-    
+    """
+    Build a prompt to generate MCQ quiz
+    Uses chunks 10-20 to get actual content
+    Args:
+        context_chunks: All chunks from document
+    Returns:
+        Formatted quiz prompt
+    """
+    # Skip first 10 chunks (copyright/org info)
+    # Use chunks 10-20 for actual content
+    context = "\n\n".join(context_chunks[10:20])
+
     prompt = f"""You are a study assistant. Generate 5 multiple choice questions from the material below.
 
 Return ONLY a JSON array in this exact format, nothing else:
@@ -71,5 +101,5 @@ Material:
 {context}
 
 JSON:"""
-    
+
     return prompt

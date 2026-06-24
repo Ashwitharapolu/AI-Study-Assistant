@@ -1,4 +1,7 @@
-# Day 6 - FAISS Vector Store + Day 18 MMR Search
+# ============================================
+# vector_store.py - FAISS Vector Store Module
+# AI Powered Smart Study Assistant
+# ============================================
 import faiss
 import numpy as np
 import pickle

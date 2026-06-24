@@ -1,3 +1,7 @@
+# ============================================
+# rag.py - Complete RAG Pipeline
+# AI Powered Smart Study Assistant
+# ============================================
 from pdf_loader import extract_text
 from chunker import chunk_text
 from embeddings import get_embeddings, model
