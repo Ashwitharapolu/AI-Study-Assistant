@@ -1,3 +1,4 @@
+# Day 23 - Logging + Metrics Fix
 import streamlit as st
 import sys
 import os
@@ -18,12 +19,10 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
 
-    /* Subtle light grey background */
     .stApp {
         background-color: #f1f5f9;
     }
 
-    /* Sidebar subtle indigo */
     section[data-testid="stSidebar"] {
         background-color: #eef2ff;
         border-right: 1px solid #c7d2fe;
@@ -33,7 +32,6 @@ st.markdown("""
         color: #1e1b4b !important;
     }
 
-    /* Buttons */
     .stButton > button {
         background-color: #6366f1;
         color: white !important;
@@ -50,7 +48,6 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Metric cards */
     div[data-testid="metric-container"] {
         background-color: #ffffff;
         border: 1px solid #e0e7ff;
@@ -59,7 +56,6 @@ st.markdown("""
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
 
-    /* Chat messages */
     .stChatMessage {
         background-color: #ffffff !important;
         border-radius: 12px !important;
@@ -69,19 +65,16 @@ st.markdown("""
         box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
     }
 
-    /* Chat input */
     div[data-testid="stChatInput"] textarea {
         background-color: #ffffff !important;
         border: 1px solid #c7d2fe !important;
         border-radius: 8px !important;
     }
 
-    /* Divider */
     hr {
         border-color: #e0e7ff !important;
     }
 
-    /* Success/warning/error */
     div[data-testid="stAlert"] {
         border-radius: 8px !important;
     }
@@ -152,6 +145,8 @@ with st.sidebar:
                         st.success(f"✅ {uploaded_file.name} processed!")
                     else:
                         st.error(f"❌ Failed: {uploaded_file.name}")
+            # Rerun after all PDFs processed to update metrics
+            st.rerun()
 
     if st.session_state.pdf_processed:
         st.success("📄 PDFs Ready!")
@@ -238,31 +233,18 @@ if len(st.session_state.messages) == 0:
     else:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown("""
-            ### 👋 Welcome to AI Study Assistant!
-
-            **Get started in 3 simple steps:**
-
-            **1.** 📁 Upload your PDF in the sidebar
-
-            **2.** 📥 Click Process PDFs and wait
-
-            **3.** 💬 Ask any question about your material!
-
-            ---
-
-            **✨ What you can do:**
-
-            ✅ Ask questions from your PDF
-
-            ✅ Generate study summaries
-
-            ✅ Auto generate quizzes
-
-            ✅ Conversation memory
-
-            ✅ Multi PDF support
-            """)
+            st.markdown("### 👋 Welcome!")
+            st.markdown("**Get started in 3 steps:**")
+            st.markdown("1. 📁 Upload your PDF in the sidebar")
+            st.markdown("2. 📥 Click Process PDFs")
+            st.markdown("3. 💬 Ask any question!")
+            st.divider()
+            st.markdown("**Features:**")
+            st.markdown("✅ Ask questions from your PDF")
+            st.markdown("✅ Generate study summaries")
+            st.markdown("✅ Auto generate quizzes")
+            st.markdown("✅ Conversation memory")
+            st.markdown("✅ Multi PDF support")
 
 # Display chat history
 for message in st.session_state.messages:
