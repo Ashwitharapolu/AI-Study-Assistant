@@ -142,4 +142,4 @@ Step 10 — LLM generates answer with source citation
 
 ---
 
-*Built with ❤️ using RAG + LangChain + FAISS + Groq*
+*Built with using RAG + LangChain + FAISS + Groq*
