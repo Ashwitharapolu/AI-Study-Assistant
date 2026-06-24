@@ -85,6 +85,8 @@ pip install -r requirements.txt
 **4. Set up API key**
 
 Create a `.env` file and add:
+
+
 **5. Run the app**
 ```bash
 streamlit run app.py
