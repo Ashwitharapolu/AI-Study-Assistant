@@ -104,3 +104,16 @@ streamlit run app.py
 ---
 
 ## 📊 How RAG Works
+
+```
+Step 1 — User uploads PDF
+Step 2 — PDF text extracted using PyPDF
+Step 3 — Text split into 500 char chunks with 50 char overlap
+Step 4 — Each chunk converted to 384 dimension vector
+Step 5 — Vectors stored in FAISS index
+Step 6 — User asks a question
+Step 7 — Question converted to vector
+Step 8 — MMR search finds top 5 relevant diverse chunks
+Step 9 — Chunks + question sent to Groq LLM
+Step 10 — LLM generates answer with source citation
+```
