@@ -23,6 +23,7 @@ Upload any PDF study material and:
 ---
 
 ## 🏗️ Architecture
+![Architecture Diagram](assets/architecture.png)
 ---
 
 ## 🛠️ Tech Stack
