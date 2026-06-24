@@ -2,15 +2,15 @@
 # rag.py - Complete RAG Pipeline
 # AI Powered Smart Study Assistant
 # ============================================
+
 from pdf_loader import extract_text
 from chunker import chunk_text
 from embeddings import get_embeddings, model
 from vector_store import build_index, save_index, load_index, search_mmr
 from llm import get_answer, get_summary, get_quiz
+from logger import logger
 import os
-import faiss
 import numpy as np
-import pickle
 
 class RAGPipeline:
     def __init__(self):
@@ -18,90 +18,87 @@ class RAGPipeline:
         self.chunks = None
         self.is_ready = False
         self.chat_history = []
-        self.uploaded_pdfs = []  # Track uploaded PDFs
+        self.uploaded_pdfs = []
 
     def process_pdf(self, pdf_path):
-        """Process a single PDF and add to existing index"""
+        """Process a PDF file through complete RAG pipeline"""
         try:
-            print(f"Processing {pdf_path}...")
+            logger.info(f"Starting PDF processing: {pdf_path}")
 
-            # Check if file exists
             if not os.path.exists(pdf_path):
-                print(f"Error: File not found: {pdf_path}")
+                logger.error(f"File not found: {pdf_path}")
                 return False
 
-            # Check file size
             file_size = os.path.getsize(pdf_path)
             if file_size == 0:
-                print("Error: PDF file is empty")
+                logger.error("PDF file is empty")
                 return False
 
-            print("Step 1 - Extracting text...")
+            logger.info("Step 1 - Extracting text...")
             text = extract_text(pdf_path)
             if not text.strip():
-                print("Error: Could not extract text from PDF")
+                logger.error("Could not extract text from PDF")
                 return False
 
-            print("Step 2 - Chunking text...")
+            logger.info("Step 2 - Chunking text...")
             new_chunks = chunk_text(text)
             if not new_chunks:
-                print("Error: Could not create chunks")
+                logger.error("Could not create chunks")
                 return False
-            print(f"New chunks: {len(new_chunks)}")
+            logger.info(f"Created {len(new_chunks)} chunks")
 
-            print("Step 3 - Creating embeddings...")
+            logger.info("Step 3 - Creating embeddings...")
             new_embeddings = get_embeddings(new_chunks)
 
-            print("Step 4 - Building/updating FAISS index...")
+            logger.info("Step 4 - Building FAISS index...")
             if self.index is None:
-                # First PDF - create new index
                 self.chunks = new_chunks
                 self.index = build_index(new_embeddings)
             else:
-                # Additional PDF - add to existing index
                 self.chunks.extend(new_chunks)
                 new_embeddings_float = np.array(new_embeddings).astype('float32')
                 self.index.add(new_embeddings_float)
 
-            print("Step 5 - Saving index...")
+            logger.info("Step 5 - Saving index...")
             save_index(self.index, self.chunks)
 
-            # Track uploaded PDFs
             pdf_name = os.path.basename(pdf_path)
             if pdf_name not in self.uploaded_pdfs:
                 self.uploaded_pdfs.append(pdf_name)
 
             self.is_ready = True
             self.chat_history = []
-            print("PDF processed successfully!")
+            logger.info(f"PDF processed successfully: {pdf_name}")
             return True
 
         except Exception as e:
-            print(f"Error processing PDF: {e}")
+            logger.error(f"Error processing PDF: {e}")
             return False
 
     def load_existing(self):
-        """Load existing index with error handling"""
+        """Load existing FAISS index from disk"""
         try:
             self.index, self.chunks = load_index()
             self.is_ready = True
-            print("Loaded existing index successfully!")
+            logger.info("Loaded existing index successfully")
             return True
         except FileNotFoundError:
-            print("No existing index found")
+            logger.warning("No existing index found")
             return False
         except Exception as e:
-            print(f"Error loading index: {e}")
+            logger.error(f"Error loading index: {e}")
             return False
 
     def ask(self, question):
-        """Ask question with conversation memory"""
+        """Ask a question and get answer from RAG pipeline"""
         try:
             if not self.is_ready:
                 return "Please upload a PDF first!"
 
             if not question.strip():
                 return "Please ask a valid question!"
+
+            logger.info(f"Question asked: {question}")
 
             results = search_mmr(
                 question, self.index, self.chunks, model, k=5, fetch_k=20
@@ -116,6 +113,8 @@ class RAGPipeline:
 
             answer = get_answer(question, results, history_text)
 
+            logger.info(f"Answer generated: {len(answer)} characters")
+
             self.chat_history.append({
                 "question": question,
                 "answer": answer
@@ -127,32 +126,39 @@ class RAGPipeline:
             return answer
 
         except Exception as e:
-            print(f"Error answering question: {e}")
+            logger.error(f"Error answering question: {e}")
             return "Sorry something went wrong. Please try again."
 
     def summarize(self):
-        """Summarize with error handling"""
+        """Summarize uploaded document"""
         try:
             if not self.is_ready:
                 return "Please upload a PDF first!"
-            return get_summary(self.chunks)
+            logger.info("Generating document summary")
+            summary = get_summary(self.chunks)
+            logger.info("Summary generated successfully")
+            return summary
         except Exception as e:
-            print(f"Error summarizing: {e}")
-            return "Sorry could not generate summary. Please try again."
+            logger.error(f"Error summarizing: {e}")
+            return "Sorry could not generate summary."
 
     def generate_quiz(self):
-        """Generate quiz with error handling"""
+        """Generate MCQ quiz from document"""
         try:
             if not self.is_ready:
                 return None
-            return get_quiz(self.chunks)
+            logger.info("Generating quiz")
+            quiz = get_quiz(self.chunks)
+            logger.info(f"Quiz generated: {len(quiz) if quiz else 0} questions")
+            return quiz
         except Exception as e:
-            print(f"Error generating quiz: {e}")
+            logger.error(f"Error generating quiz: {e}")
             return None
 
     def clear_history(self):
         """Clear conversation history"""
         self.chat_history = []
+        logger.info("Chat history cleared")
 
     def reset(self):
         """Reset entire pipeline"""
@@ -161,3 +167,4 @@ class RAGPipeline:
         self.is_ready = False
         self.chat_history = []
         self.uploaded_pdfs = []
+        logger.info("Pipeline reset")
