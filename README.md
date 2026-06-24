@@ -1,0 +1,105 @@
+# 📚 AI Powered Smart Study Assistant
+
+> An intelligent study assistant that allows you to upload PDFs and ask questions, generate quizzes, and get summaries powered by RAG pipeline and Groq LLM.
+
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.x-red)
+![LangChain](https://img.shields.io/badge/LangChain-0.3-green)
+![FAISS](https://img.shields.io/badge/FAISS-Vector_DB-orange)
+![Groq](https://img.shields.io/badge/Groq-LLM-purple)
+
+---
+
+## 🎯 What This Project Does
+
+Upload any PDF study material and:
+- 💬 Ask questions in natural language
+- 📝 Generate structured summaries
+- 🎯 Auto generate MCQ quizzes
+- 🧠 Remembers conversation context
+- 📑 Support multiple PDFs at once
+- 🔍 Source citations with every answer
+
+---
+
+## 🏗️ Architecture
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| **LLM** | Groq API — Llama 3.3 70B |
+| **RAG Framework** | LangChain |
+| **Vector Database** | FAISS |
+| **Embeddings** | Sentence Transformers (all-MiniLM-L6-v2) |
+| **PDF Processing** | PyPDF |
+| **UI** | Streamlit |
+| **Language** | Python 3.11 |
+
+---
+
+## ✨ Features
+
+- **RAG Pipeline** — Retrieval Augmented Generation for accurate answers
+- **MMR Search** — Maximum Marginal Relevance for diverse chunk retrieval
+- **Conversation Memory** — Remembers last 5 exchanges for follow up questions
+- **Source Citations** — Every answer shows which source it came from
+- **Multi PDF Support** — Upload and query multiple PDFs simultaneously
+- **Quiz Generator** — Auto generates 5 MCQs from uploaded content
+- **Summarization** — Generates structured summaries with key concepts
+- **Error Handling** — Graceful handling of bad PDFs and API failures
+- **Logging** — Complete activity logging for debugging
+
+---
+
+## 📁 Project Structure
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.11+
+- Groq API key — free at console.groq.com
+
+### Installation
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/Ashwitharapolu/AI-Study-Assistant.git
+cd AI-Study-Assistant
+```
+
+**2. Create virtual environment**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Set up API key**
+
+Create a `.env` file and add:
+**5. Run the app**
+```bash
+streamlit run app.py
+```
+
+**6. Open browser at**
+---
+
+## 💡 How to Use
+
+1. Upload your PDF study material in the sidebar
+2. Click **Process PDFs** and wait 2-3 minutes
+3. Ask any question in the chat box
+4. Click **Summarize PDF** for a structured summary
+5. Click **Generate Quiz** for 5 auto generated MCQs
+
+---
+
+## 📊 How RAG Works
