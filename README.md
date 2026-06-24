@@ -117,3 +117,29 @@ Step 8 — MMR search finds top 5 relevant diverse chunks
 Step 9 — Chunks + question sent to Groq LLM
 Step 10 — LLM generates answer with source citation
 ```
+## 🔑 Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `GROQ_API_KEY` | Your Groq API key from console.groq.com |
+
+---
+
+## 📊 Resume Highlights
+
+- Built RAG pipeline using LangChain + FAISS enabling semantic Q&A over uploaded PDFs
+- Implemented MMR retrieval combining relevance and diversity for better answer quality
+- Added conversation memory storing last 5 exchanges for contextual follow up questions
+- Built multi PDF support with combined FAISS indexing across documents
+- Implemented quiz generation and summarization using prompt engineering with Groq LLM
+
+---
+
+## 👤 Author
+
+**Ashwitha Rapolu**
+- GitHub: [@Ashwitharapolu](https://github.com/Ashwitharapolu)
+
+---
+
+*Built with ❤️ using RAG + LangChain + FAISS + Groq*
