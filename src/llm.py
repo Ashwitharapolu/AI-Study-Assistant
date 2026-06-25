@@ -11,7 +11,15 @@ import time
 
 # Load API key
 load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Works both locally and on Streamlit Cloud
+try:
+    import streamlit as st
+    api_key = st.secrets["GROQ_API_KEY"]
+except Exception:
+    api_key = os.getenv("GROQ_API_KEY")
+
+client = Groq(api_key=api_key)
 
 def get_answer(question, context_chunks, history_text=""):
     """Get answer from Groq with error handling"""
