@@ -12,6 +12,16 @@
 ## 🌍 Live Demo
 👉 [Click here to try the app](https://ai-study-assistant-kuvgyhj6ekcrk9j8nzkeqd.streamlit.app)
 
+## 📸 Screenshots
+
+### Welcome Screen
+![Welcome](assets/screenshot1.png)
+
+### Chat with AI Answer
+![Chat](assets/screenshot2.png)
+
+### Quiz Generator
+![Quiz](assets/screenshot3.png)
 ## 🎯 What This Project Does
 
 Upload any PDF study material and:
