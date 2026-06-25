@@ -9,6 +9,8 @@
 ![Groq](https://img.shields.io/badge/Groq-LLM-purple)
 
 ---
+## 🌍 Live Demo
+👉 [Click here to try the app](https://ai-study-assistant-kuvgyhj6ekcrk9j8nzkeqd.streamlit.app)
 
 ## 🎯 What This Project Does
 
