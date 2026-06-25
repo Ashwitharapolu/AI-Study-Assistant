@@ -67,6 +67,43 @@ Upload any PDF study material and:
 ---
 
 ## 📁 Project Structure
+AI-Study-Assistant/
+
+├── data/                  ← Upload PDFs here
+
+├── src/
+
+│   ├── pdf_loader.py      ← PDF text extraction
+
+│   ├── chunker.py         ← Text chunking
+
+│   ├── embeddings.py      ← Vector embeddings
+
+│   ├── vector_store.py    ← FAISS vector store
+
+│   ├── retriever.py       ← Retrieval system
+
+│   ├── prompts.py         ← Prompt engineering
+
+│   ├── llm.py             ← LLM connection
+
+│   ├── rag.py             ← Complete RAG pipeline
+
+│   └── logger.py          ← Logging module
+
+├── logs/                  ← Activity logs
+
+├── faiss_index/           ← Saved FAISS index
+
+├── .streamlit/
+
+│   └── config.toml        ← UI theme
+
+├── app.py                 ← Streamlit UI
+
+├── requirements.txt       ← Dependencies
+
+└── .env                   ← API keys (not in git)
 ---
 
 ## 🚀 Getting Started
