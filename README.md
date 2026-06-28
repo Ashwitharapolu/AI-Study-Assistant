@@ -122,7 +122,8 @@ GROQ_API_KEY=your_groq_api_key_here
 streamlit run app.py
 ```
 
-**6. Open browser at** → http://localhost:8501
+**6. Open browser at** 
+http://localhost:8501
 
 ## 💡 How to Use
 
