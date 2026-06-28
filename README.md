@@ -114,6 +114,7 @@ pip install -r requirements.txt
 **4. Set up API key**
 
 Create a `.env` file and add:
+GROQ_API_KEY=your_groq_api_key_here
 
 
 **5. Run the app**
@@ -121,8 +122,7 @@ Create a `.env` file and add:
 streamlit run app.py
 ```
 
-**6. Open browser at**
----
+**6. Open browser at** → http://localhost:8501
 
 ## 💡 How to Use
 
