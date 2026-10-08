@@ -27,7 +27,7 @@ def get_answer(question, context_chunks, history_text=""):
     try:
         prompt = build_qa_prompt(question, context_chunks, history_text)
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
