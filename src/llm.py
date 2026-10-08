@@ -5,6 +5,7 @@
 from groq import Groq
 from dotenv import load_dotenv
 from prompts import build_qa_prompt, build_summary_prompt, build_quiz_prompt
+from logger import logger
 import os
 import json
 import time
@@ -30,10 +31,9 @@ def get_answer(question, context_chunks, history_text=""):
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
-    except Exception as e:
-        print(f"Error getting answer: {e}")
+     except Exception as e:
+        logger.exception(f"Groq ERROR: {e}")
         return "Sorry I am having trouble connecting to the AI. Please try again in a moment."
-
 def get_summary(context_chunks):
     """Get summary with error handling"""
     try:
