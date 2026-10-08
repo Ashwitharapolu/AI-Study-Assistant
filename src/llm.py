@@ -39,7 +39,7 @@ def get_summary(context_chunks):
     try:
         prompt = build_summary_prompt(context_chunks)
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
@@ -52,7 +52,7 @@ def get_quiz(context_chunks):
     try:
         prompt = build_quiz_prompt(context_chunks)
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}]
         )
 
