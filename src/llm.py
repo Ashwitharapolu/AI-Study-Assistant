@@ -31,7 +31,7 @@ def get_answer(question, context_chunks, history_text=""):
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
-     except Exception as e:
+    except Exception as e:
         logger.exception(f"Groq ERROR: {e}")
         return "Sorry I am having trouble connecting to the AI. Please try again in a moment."
 def get_summary(context_chunks):
